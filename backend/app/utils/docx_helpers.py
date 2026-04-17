@@ -1,4 +1,5 @@
 """Low-level helpers for inspecting python-docx objects."""
+
 from __future__ import annotations
 
 import re
@@ -15,7 +16,7 @@ _MONTH_NAME = r"""(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:
            Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|
            Dec(?:ember)?)"""
 _DATE_UNIT = rf"""(?:(?:{_MONTH_NAME}[\s,]+)|\d{{1,2}}/)?  # optional month name or MM/
-              \d{{4}}"""                                    # 4-digit year
+              \d{{4}}"""  # 4-digit year
 _END_UNIT = rf"""(?:(?:{_MONTH_NAME}[\s,]+)|\d{{1,2}}/)?
              (?:\d{{4}}|[Pp]resent|[Cc]urrent|[Tt]oday)"""
 DATE_RANGE_RE = re.compile(
@@ -32,21 +33,39 @@ DATE_RANGE_RE = re.compile(
 # resolve to whichever type appears first in this dict.
 SECTION_KEYWORDS: dict[str, list[str]] = {
     "skills": [
-        "skills", "competencies", "technical skills", "expertise",
-        "core competencies", "selected skills", "key skills",
+        "skills",
+        "competencies",
+        "technical skills",
+        "expertise",
+        "core competencies",
+        "selected skills",
+        "key skills",
     ],
     "experience": [
-        "employment", "work history", "work experience",
-        "career", "professional background", "professional experience",
+        "employment",
+        "work history",
+        "work experience",
+        "career",
+        "professional background",
+        "professional experience",
     ],
     "education": ["education", "academic", "degree", "schooling", "university"],
     "summary": [
-        "summary", "profile", "objective", "about", "professional summary",
-        "career summary", "overview",
+        "summary",
+        "profile",
+        "objective",
+        "about",
+        "professional summary",
+        "career summary",
+        "overview",
     ],
     "certifications": [
-        "certifications", "licenses", "credentials", "certificate",
-        "professional development", "training",
+        "certifications",
+        "licenses",
+        "credentials",
+        "certificate",
+        "professional development",
+        "training",
     ],
     "projects": ["projects", "portfolio", "notable projects"],
     "military": ["military", "armed forces", "service", "veteran"],

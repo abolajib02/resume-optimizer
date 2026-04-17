@@ -6,6 +6,7 @@ re-parse the output and verify structure. This is a round-trip integration test.
 
 Run: cd backend && pytest tests/test_reconstructor.py -v -s
 """
+
 import os
 from io import BytesIO
 
@@ -19,9 +20,7 @@ from app.services.reconstructor import reconstruct_resume
 CHRONOLOGICAL = os.path.join(
     os.path.expanduser("~"), "Downloads", "Chronological Resume Template.docx"
 )
-COMBINATION = os.path.join(
-    os.path.expanduser("~"), "Downloads", "Combination Resume Template.docx"
-)
+COMBINATION = os.path.join(os.path.expanduser("~"), "Downloads", "Combination Resume Template.docx")
 
 
 def _load(path: str) -> bytes:
@@ -40,6 +39,7 @@ def _all_text(doc: Document) -> str:
 # ---------------------------------------------------------------------------
 # Chronological round-trip
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.skipif(not os.path.exists(CHRONOLOGICAL), reason="Template not found")
 class TestChronologicalRoundTrip:
@@ -70,9 +70,7 @@ class TestChronologicalRoundTrip:
         text = _all_text(_open_docx(out))
         for section in self.resume.sections:
             if section.heading:
-                assert section.heading in text, (
-                    f"Heading '{section.heading}' missing from output"
-                )
+                assert section.heading in text, f"Heading '{section.heading}' missing from output"
 
     def test_job_titles_present(self):
         out = reconstruct_resume(self.request)
@@ -91,9 +89,7 @@ class TestChronologicalRoundTrip:
 
     def test_deselected_bullet_excluded(self):
         """Hiding a bullet should remove it from the output."""
-        exp_section = next(
-            s for s in self.resume.sections if s.section_type == "experience"
-        )
+        exp_section = next(s for s in self.resume.sections if s.section_type == "experience")
         target_bullet = exp_section.jobs[0].bullets[0]
         request = DownloadRequest(
             resume=self.resume,
@@ -105,9 +101,7 @@ class TestChronologicalRoundTrip:
 
     def test_deselected_job_excluded(self):
         """Hiding a job should remove its header line and all bullets."""
-        exp_section = next(
-            s for s in self.resume.sections if s.section_type == "experience"
-        )
+        exp_section = next(s for s in self.resume.sections if s.section_type == "experience")
         target_job = exp_section.jobs[0]
         # Deselect the job and all its bullets
         selection = {target_job.id: False}
@@ -122,20 +116,18 @@ class TestChronologicalRoundTrip:
         # false matches in summary/skills paragraphs.
         header_line = f"{target_job.title}  {target_job.date_range}"
         para_texts = [p.text for p in doc.paragraphs]
-        assert header_line not in para_texts, (
-            f"Job header line '{header_line}' still present after deselection"
-        )
+        assert (
+            header_line not in para_texts
+        ), f"Job header line '{header_line}' still present after deselection"
         # All bullets should also be absent
         for bullet in target_job.bullets:
-            assert bullet.text not in "\n".join(para_texts), (
-                f"Bullet still present: {bullet.text[:50]}"
-            )
+            assert bullet.text not in "\n".join(
+                para_texts
+            ), f"Bullet still present: {bullet.text[:50]}"
 
     def test_inline_edit_applied(self):
         """An inline edit should replace the original bullet text."""
-        exp_section = next(
-            s for s in self.resume.sections if s.section_type == "experience"
-        )
+        exp_section = next(s for s in self.resume.sections if s.section_type == "experience")
         target_bullet = exp_section.jobs[0].bullets[0]
         edited_text = "Custom edited bullet text for testing purposes"
         request = DownloadRequest(
@@ -204,19 +196,18 @@ class TestChronologicalRoundTrip:
         print("Reconstructed paragraphs:")
         for i, para in enumerate(doc.paragraphs):
             if para.text.strip():
-                sizes = [
-                    round(r.font.size / 12700, 1)
-                    for r in para.runs
-                    if r.font.size
-                ]
-                print(f"  [{i:3d}] style={para.style.name!r:20s} "
-                      f"sizes={sizes} text={para.text[:60]!r}")
-        print("="*60)
+                sizes = [round(r.font.size / 12700, 1) for r in para.runs if r.font.size]
+                print(
+                    f"  [{i:3d}] style={para.style.name!r:20s} "
+                    f"sizes={sizes} text={para.text[:60]!r}"
+                )
+        print("=" * 60)
 
 
 # ---------------------------------------------------------------------------
 # Combination round-trip
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.skipif(not os.path.exists(COMBINATION), reason="Template not found")
 class TestCombinationRoundTrip:
@@ -254,12 +245,13 @@ class TestCombinationRoundTrip:
         for i, para in enumerate(doc.paragraphs):
             if para.text.strip():
                 print(f"  [{i:3d}] {para.text[:70]!r}")
-        print("="*60)
+        print("=" * 60)
 
 
 # ---------------------------------------------------------------------------
 # Edge cases
 # ---------------------------------------------------------------------------
+
 
 def test_empty_selection_produces_minimal_doc():
     """Deselecting everything should produce a document with no body content."""

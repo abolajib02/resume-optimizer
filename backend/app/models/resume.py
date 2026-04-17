@@ -12,6 +12,7 @@ def _new_id() -> str:
 
 class RunStyle(BaseModel):
     """Serialized style data for a single text run within a paragraph."""
+
     text: str
     bold: bool | None = None
     italic: bool | None = None
@@ -23,14 +24,15 @@ class RunStyle(BaseModel):
 
 class Bullet(BaseModel):
     id: str = Field(default_factory=_new_id)
-    text: str                          # clean text, bullet char stripped
-    run_styles: list[RunStyle]         # per-run formatting for reconstruction
-    paragraph_style: str               # original Word paragraph style name
-    original_index: int                # position within parent job/section
+    text: str  # clean text, bullet char stripped
+    run_styles: list[RunStyle]  # per-run formatting for reconstruction
+    paragraph_style: str  # original Word paragraph style name
+    original_index: int  # position within parent job/section
 
 
 class FreeParagraph(BaseModel):
     """Non-bullet paragraph within a section (e.g. skill lines, degree lines)."""
+
     id: str = Field(default_factory=_new_id)
     text: str
     run_styles: list[RunStyle]
@@ -54,7 +56,7 @@ class Job(BaseModel):
     date_paragraph_style: str = "Normal"
     # Paragraphs in the job header that didn't resolve into title/company cleanly
     raw_header_paragraphs: list[FreeParagraph] = Field(default_factory=list)
-    original_order: int = 0            # position within parent section
+    original_order: int = 0  # position within parent section
 
 
 SectionType = Literal[
@@ -83,6 +85,7 @@ class Section(BaseModel):
 
 class DocumentStyles(BaseModel):
     """Document-level style defaults captured from the source DOCX."""
+
     default_font_name: str | None = None
     default_font_size_pt: float | None = None
     page_width_inches: float | None = None

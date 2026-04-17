@@ -10,6 +10,7 @@ Also maintains a small expansion table for common tech abbreviations.
 
 Returns deterministic, explainable results — no LLM involved here.
 """
+
 from __future__ import annotations
 
 import re
@@ -20,8 +21,10 @@ from typing import Any
 # NLTK bootstrapping — download once, cache
 # ---------------------------------------------------------------------------
 
+
 def _ensure_nltk() -> None:
     import nltk
+
     try:
         nltk.data.find("tokenizers/punkt")
     except LookupError:
@@ -67,6 +70,7 @@ for abbr, expansions in _EXPANSIONS.items():
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def extract_jd_keywords(job_description: str, max_keywords: int = 40) -> list[str]:
     """
     Extract up to `max_keywords` meaningful keywords from a job description.
@@ -82,10 +86,30 @@ def extract_jd_keywords(job_description: str, max_keywords: int = 40) -> list[st
     from nltk.corpus import stopwords
 
     stop = set(stopwords.words("english")) | {
-        "experience", "ability", "skill", "skills", "work", "working",
-        "will", "must", "required", "preferred", "include", "including",
-        "years", "year", "strong", "excellent", "good", "great", "plus",
-        "bonus", "nice", "responsibilities", "requirements", "qualifications",
+        "experience",
+        "ability",
+        "skill",
+        "skills",
+        "work",
+        "working",
+        "will",
+        "must",
+        "required",
+        "preferred",
+        "include",
+        "including",
+        "years",
+        "year",
+        "strong",
+        "excellent",
+        "good",
+        "great",
+        "plus",
+        "bonus",
+        "nice",
+        "responsibilities",
+        "requirements",
+        "qualifications",
     }
 
     text = job_description.lower()
@@ -108,9 +132,7 @@ def extract_jd_keywords(job_description: str, max_keywords: int = 40) -> list[st
     trigrams = [
         f"{tokens[i]} {tokens[i+1]} {tokens[i+2]}"
         for i in range(len(tokens) - 2)
-        if tokens[i] not in stop
-        and tokens[i + 1] not in stop
-        and tokens[i + 2] not in stop
+        if tokens[i] not in stop and tokens[i + 1] not in stop and tokens[i + 2] not in stop
     ]
 
     # Score: count occurrences (position-weighted)
@@ -199,4 +221,5 @@ def resume_full_text(resume_dict: dict) -> str:
 def _get_stemmer() -> Any:  # PorterStemmer — no stubs available
     _ensure_nltk()
     from nltk.stem import PorterStemmer
+
     return PorterStemmer()

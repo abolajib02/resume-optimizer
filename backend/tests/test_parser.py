@@ -2,6 +2,7 @@
 Tests for the DOCX parser.
 Run: cd backend && pytest tests/test_parser.py -v
 """
+
 import os
 
 import pytest
@@ -14,9 +15,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 CHRONOLOGICAL = os.path.join(
     os.path.expanduser("~"), "Downloads", "Chronological Resume Template.docx"
 )
-COMBINATION = os.path.join(
-    os.path.expanduser("~"), "Downloads", "Combination Resume Template.docx"
-)
+COMBINATION = os.path.join(os.path.expanduser("~"), "Downloads", "Combination Resume Template.docx")
 
 
 def _load(path: str) -> bytes:
@@ -27,6 +26,7 @@ def _load(path: str) -> bytes:
 # ---------------------------------------------------------------------------
 # Chronological template tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.skipif(not os.path.exists(CHRONOLOGICAL), reason="Template file not found")
 class TestChronologicalTemplate:
@@ -60,9 +60,10 @@ class TestChronologicalTemplate:
             assert len(job.bullets) > 0, f"Job '{job.title}' has no bullets"
 
     def test_detected_format_is_chronological(self):
-        assert self.resume.detected_format in ("chronological", "unknown"), (
-            f"Unexpected format: {self.resume.detected_format}"
-        )
+        assert self.resume.detected_format in (
+            "chronological",
+            "unknown",
+        ), f"Unexpected format: {self.resume.detected_format}"
 
     def test_source_styles_captured(self):
         s = self.resume.source_styles
@@ -93,6 +94,7 @@ class TestChronologicalTemplate:
 # ---------------------------------------------------------------------------
 # Combination template tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.skipif(not os.path.exists(COMBINATION), reason="Template file not found")
 class TestCombinationTemplate:
@@ -126,6 +128,7 @@ class TestCombinationTemplate:
 # Shared edge case tests
 # ---------------------------------------------------------------------------
 
+
 def test_empty_file_raises():
     with pytest.raises(Exception):
         parse_resume(b"")
@@ -139,6 +142,7 @@ def test_non_docx_bytes_raises():
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _print_tree(resume: ParsedResume) -> None:
     print(f"\n{'='*60}")
@@ -157,4 +161,4 @@ def _print_tree(resume: ParsedResume) -> None:
                 print(f"      • {b.text[:80]}")
         for fp in section.free_paragraphs:
             print(f"    > {fp.text[:80]}")
-    print("="*60)
+    print("=" * 60)

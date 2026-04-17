@@ -24,9 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_DOCX_MIME = (
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-)
+_DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 _MAX_BYTES = settings.max_upload_size_mb * 1024 * 1024
 
 # ---------------------------------------------------------------------------
@@ -40,8 +38,9 @@ _TASKS: dict[str, dict[str, Any]] = {}
 # Request / response models
 # ---------------------------------------------------------------------------
 
+
 class AnalyzeRequest(BaseModel):
-    resume: dict        # ParsedResume as raw dict (avoids double-parsing)
+    resume: dict  # ParsedResume as raw dict (avoids double-parsing)
     job_description: str
 
 
@@ -59,6 +58,7 @@ class AnalyzeStatusResponse(BaseModel):
 # Health
 # ---------------------------------------------------------------------------
 
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -68,11 +68,10 @@ def health() -> dict:
 # Parse
 # ---------------------------------------------------------------------------
 
+
 @app.post("/api/parse", response_model=ParseResponse)
 async def parse(file: UploadFile = File(...)) -> ParseResponse:
-    if file.content_type and file.content_type not in (
-        _DOCX_MIME, "application/octet-stream"
-    ):
+    if file.content_type and file.content_type not in (_DOCX_MIME, "application/octet-stream"):
         raise HTTPException(status_code=415, detail="Only .docx files are supported.")
 
     file_bytes = await file.read()
@@ -89,9 +88,7 @@ async def parse(file: UploadFile = File(...)) -> ParseResponse:
     try:
         resume = parse_resume(file_bytes)
     except Exception as exc:
-        raise HTTPException(
-            status_code=422, detail=f"Could not parse the document: {exc}"
-        ) from exc
+        raise HTTPException(status_code=422, detail=f"Could not parse the document: {exc}") from exc
 
     return ParseResponse(resume=resume)
 
@@ -99,6 +96,7 @@ async def parse(file: UploadFile = File(...)) -> ParseResponse:
 # ---------------------------------------------------------------------------
 # Analyze (async background task + polling)
 # ---------------------------------------------------------------------------
+
 
 async def _run_analysis(task_id: str, request: AnalyzeRequest) -> None:
     """Background coroutine: runs analysis and writes result to _TASKS."""
@@ -147,20 +145,16 @@ async def get_analyze_status(task_id: str) -> AnalyzeStatusResponse:
 # Download
 # ---------------------------------------------------------------------------
 
+
 @app.post("/api/download")
 async def download(request: DownloadRequest) -> StreamingResponse:
     try:
         docx_bytes = reconstruct_resume(request)
     except Exception as exc:
-        raise HTTPException(
-            status_code=422, detail=f"Could not reconstruct resume: {exc}"
-        ) from exc
+        raise HTTPException(status_code=422, detail=f"Could not reconstruct resume: {exc}") from exc
 
     return StreamingResponse(
         BytesIO(docx_bytes),
-        media_type=(
-            "application/vnd.openxmlformats-officedocument"
-            ".wordprocessingml.document"
-        ),
+        media_type=("application/vnd.openxmlformats-officedocument" ".wordprocessingml.document"),
         headers={"Content-Disposition": "attachment; filename=optimized_resume.docx"},
     )

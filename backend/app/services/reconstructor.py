@@ -16,6 +16,7 @@ Key decisions:
     under category headings; Employment History is written in collapsed form.
   - Inline edits from the frontend replace bullet/paragraph text verbatim.
 """
+
 from __future__ import annotations
 
 from io import BytesIO
@@ -41,6 +42,7 @@ _EMU_PER_INCH = 914400
 # Public entry point
 # ---------------------------------------------------------------------------
 
+
 def reconstruct_resume(request: DownloadRequest) -> bytes:
     """
     Build and return a DOCX file as bytes from the given DownloadRequest.
@@ -52,7 +54,7 @@ def reconstruct_resume(request: DownloadRequest) -> bytes:
 
     # Build lookup maps for ordering overrides sent by the frontend
     section_order = request.section_order or [s.id for s in resume.sections]
-    job_order_map = request.job_order        # section_id → [job_id, ...]
+    job_order_map = request.job_order  # section_id → [job_id, ...]
     bullet_order_map = request.bullet_order  # job_id → [bullet_id, ...]
 
     doc = _setup_document(resume.source_styles, settings)
@@ -87,6 +89,7 @@ def reconstruct_resume(request: DownloadRequest) -> bytes:
 # Document setup
 # ---------------------------------------------------------------------------
 
+
 def _setup_document(source: DocumentStyles, settings: FormattingSettings) -> Document:
     doc = Document()
 
@@ -115,6 +118,7 @@ def _setup_document(source: DocumentStyles, settings: FormattingSettings) -> Doc
 # ---------------------------------------------------------------------------
 # Section dispatcher
 # ---------------------------------------------------------------------------
+
 
 def _write_section(
     doc: Document,
@@ -174,6 +178,7 @@ def _write_section(
 # Experience section (chronological: full bullets; combination: collapsed)
 # ---------------------------------------------------------------------------
 
+
 def _write_experience_section(
     doc: Document,
     section: Section,
@@ -230,9 +235,7 @@ def _write_job_header(
     # Detect variant A: title was extracted from the date line
     # (they share the same run_styles list identity — check by content equality)
     title_from_date_line = (
-        job.title_run_styles
-        and job.date_run_styles
-        and job.title_run_styles == job.date_run_styles
+        job.title_run_styles and job.date_run_styles and job.title_run_styles == job.date_run_styles
     )
 
     if title_from_date_line:
@@ -294,6 +297,7 @@ def _write_bullet(
 # Combination-format skills section (LLM-grouped categories)
 # ---------------------------------------------------------------------------
 
+
 def _write_combination_skills_section(
     doc: Document,
     section: Section,
@@ -341,6 +345,7 @@ def _write_combination_skills_section(
 # Free-paragraph sections (skills, education, summary, etc.)
 # ---------------------------------------------------------------------------
 
+
 def _write_free_section(
     doc: Document,
     section: Section,
@@ -365,6 +370,7 @@ def _write_free_section(
 # ---------------------------------------------------------------------------
 # Core paragraph writers
 # ---------------------------------------------------------------------------
+
 
 def _write_paragraph_from_runs(
     doc: Document,
@@ -456,6 +462,7 @@ def _write_plain_paragraph(
 # Run-level style application
 # ---------------------------------------------------------------------------
 
+
 def _apply_run_style(
     run,
     rs: RunStyle,
@@ -500,6 +507,7 @@ def _apply_size(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _is_visible(node_id: str, selection: dict[str, bool]) -> bool:
     """Return True if the node is selected (missing from map = visible by default)."""

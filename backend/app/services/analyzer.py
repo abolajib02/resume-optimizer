@@ -14,6 +14,7 @@ Flow
 5. If the recommended format is "combination", call Claude again with the
    SKILL_SYNTHESIS_TOOL to group bullets under category headings.
 """
+
 from __future__ import annotations
 
 import json
@@ -176,9 +177,7 @@ def _parse_analysis(
     # Build ID sets for validation
     valid_section_ids = {s.id for s in resume.sections}
     valid_job_ids = {j.id for s in resume.sections for j in s.jobs}
-    valid_bullet_ids = {
-        b.id for s in resume.sections for j in s.jobs for b in j.bullets
-    }
+    valid_bullet_ids = {b.id for s in resume.sections for j in s.jobs for b in j.bullets}
 
     section_scores: list[SectionScore] = []
     for ss in raw.get("section_scores", []):
@@ -294,8 +293,6 @@ async def _synthesise_skill_groups(
     for group in raw.get("skill_groups", []):
         bullet_ids = [bid for bid in group.get("bullet_ids", []) if bid in valid_ids]
         if bullet_ids:
-            groups.append(
-                SkillGroup(heading=group.get("heading", ""), bullet_ids=bullet_ids)
-            )
+            groups.append(SkillGroup(heading=group.get("heading", ""), bullet_ids=bullet_ids))
 
     return groups

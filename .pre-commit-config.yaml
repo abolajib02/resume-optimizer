@@ -1,0 +1,33 @@
+repos:
+  # ── General file hygiene ────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        exclude: tsconfig.*\.json$   # tsconfig allows comments, skip strict check
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+
+  # ── Python: ruff lint + format (auto-fixes staged files) ───────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff               # lint + auto-fix
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format        # opinionated formatter (like black)
+        files: ^backend/
+
+  # ── Frontend: ESLint (auto-fixes staged TS/TSX files) ──────────────────────
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint (frontend)
+        language: system
+        entry: bash -c 'cd frontend && npm run lint -- --fix'
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false   # ESLint needs full project context

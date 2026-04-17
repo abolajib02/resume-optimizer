@@ -12,6 +12,7 @@ Pipeline:
   Stage 5  – Detect resume format (chronological vs. combination)
   Stage 6  – Extract candidate name from the first heading/paragraph
 """
+
 from __future__ import annotations
 
 import re
@@ -47,15 +48,16 @@ from app.utils.docx_helpers import (
 # ---------------------------------------------------------------------------
 _CLS_HEADING = "heading"
 _CLS_BULLET = "bullet"
-_CLS_DATE_LINE = "date_line"       # line that contains a date range
+_CLS_DATE_LINE = "date_line"  # line that contains a date range
 _CLS_CONTACT = "contact"
-_CLS_FREE = "free"                 # everything else
+_CLS_FREE = "free"  # everything else
 _CLS_EMPTY = "empty"
 
 
 # ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
+
 
 def parse_resume(file_bytes: bytes) -> ParsedResume:
     """Parse a DOCX file (as raw bytes) into a ParsedResume."""
@@ -80,10 +82,7 @@ def parse_resume(file_bytes: bytes) -> ParsedResume:
     body_font_size = _estimate_body_font_size(all_paragraphs)
 
     # Stage 3 – classify each paragraph
-    classified = [
-        (para, _classify_paragraph(para, body_font_size))
-        for para in all_paragraphs
-    ]
+    classified = [(para, _classify_paragraph(para, body_font_size)) for para in all_paragraphs]
 
     # Stage 4 – build section/job/bullet tree
     sections = _build_sections(classified, warnings)
@@ -107,6 +106,7 @@ def parse_resume(file_bytes: bytes) -> ParsedResume:
 # Stage 1 – Document-level style extraction
 # ---------------------------------------------------------------------------
 
+
 def _extract_document_styles(doc: Document) -> DocumentStyles:
     styles = DocumentStyles()
 
@@ -117,7 +117,9 @@ def _extract_document_styles(doc: Document) -> DocumentStyles:
         styles.page_width_inches = round(sec.page_width / emu, 3) if sec.page_width else None
         styles.page_height_inches = round(sec.page_height / emu, 3) if sec.page_height else None
         styles.margin_top_inches = round(sec.top_margin / emu, 3) if sec.top_margin else None
-        styles.margin_bottom_inches = round(sec.bottom_margin / emu, 3) if sec.bottom_margin else None
+        styles.margin_bottom_inches = (
+            round(sec.bottom_margin / emu, 3) if sec.bottom_margin else None
+        )
         styles.margin_left_inches = round(sec.left_margin / emu, 3) if sec.left_margin else None
         styles.margin_right_inches = round(sec.right_margin / emu, 3) if sec.right_margin else None
     except Exception:
@@ -140,6 +142,7 @@ def _extract_document_styles(doc: Document) -> DocumentStyles:
 # Stage 2 – Table detection
 # ---------------------------------------------------------------------------
 
+
 def _has_multi_column_tables(doc: Document) -> bool:
     """Return True if the document body contains tables (possible multi-column layout)."""
     return len(doc.tables) > 0
@@ -148,6 +151,7 @@ def _has_multi_column_tables(doc: Document) -> bool:
 # ---------------------------------------------------------------------------
 # Paragraph collection (including table cells)
 # ---------------------------------------------------------------------------
+
 
 def _collect_paragraphs(doc: Document, warnings: list[str]) -> list[Paragraph]:
     """
@@ -161,10 +165,12 @@ def _collect_paragraphs(doc: Document, warnings: list[str]) -> list[Paragraph]:
         if tag == "p":
             # Wrap back into a Paragraph object
             from docx.text.paragraph import Paragraph as P
+
             paragraphs.append(P(block, doc))
         elif tag == "tbl":
             # Linearize table cells
             from docx.table import Table
+
             tbl = Table(block, doc)
             for row in tbl.rows:
                 for cell in row.cells:
@@ -177,6 +183,7 @@ def _collect_paragraphs(doc: Document, warnings: list[str]) -> list[Paragraph]:
 # ---------------------------------------------------------------------------
 # Body font size estimation
 # ---------------------------------------------------------------------------
+
 
 def _estimate_body_font_size(paragraphs: list[Paragraph]) -> float:
     """
@@ -196,6 +203,7 @@ def _estimate_body_font_size(paragraphs: list[Paragraph]) -> float:
 # ---------------------------------------------------------------------------
 # Stage 3 – Paragraph classification
 # ---------------------------------------------------------------------------
+
 
 def _classify_paragraph(para: Paragraph, body_font_size: float) -> str:
     text = para.text.strip()
@@ -263,6 +271,7 @@ def _classify_paragraph(para: Paragraph, body_font_size: float) -> str:
 # Stage 4 – Build section/job/bullet tree
 # ---------------------------------------------------------------------------
 
+
 def _build_sections(
     classified: list[tuple[Paragraph, str]],
     warnings: list[str],
@@ -317,9 +326,7 @@ def _build_sections(
 
         if current_section.section_type == "experience":
             # Delegate experience parsing to a sub-routine
-            consumed = _parse_experience_block(
-                classified, i, current_section, warnings
-            )
+            consumed = _parse_experience_block(classified, i, current_section, warnings)
             i += consumed
         else:
             # Non-experience section: accumulate bullets and free paragraphs
@@ -352,9 +359,7 @@ def _build_sections(
     return sections
 
 
-def _flush_free_paragraphs(
-    section: Section, pending: list[tuple[Paragraph, int]]
-) -> None:
+def _flush_free_paragraphs(section: Section, pending: list[tuple[Paragraph, int]]) -> None:
     for para, idx in pending:
         text = para.text.strip()
         if not text:
@@ -418,9 +423,11 @@ def _parse_experience_block(
             if not current_job.company and i < len(classified):
                 peek_para, peek_cls = classified[i]
                 peek_text = peek_para.text.strip()
-                if (
-                    peek_text
-                    and peek_cls not in (_CLS_HEADING, _CLS_BULLET, _CLS_DATE_LINE, _CLS_EMPTY)
+                if peek_text and peek_cls not in (
+                    _CLS_HEADING,
+                    _CLS_BULLET,
+                    _CLS_DATE_LINE,
+                    _CLS_EMPTY,
                 ):
                     # Split on tab in case company and location are tab-separated
                     # e.g. "Minnesota Diversified Industries\tSt. Paul, MN"
@@ -585,6 +592,7 @@ def _build_job(
 # Stage 5 – Format detection
 # ---------------------------------------------------------------------------
 
+
 def _detect_format(sections: list[Section]) -> str:
     """
     Heuristic: if a skills section appears before the experience section,
@@ -615,6 +623,7 @@ def _detect_format(sections: list[Section]) -> str:
 # ---------------------------------------------------------------------------
 # Stage 6 – Candidate name extraction
 # ---------------------------------------------------------------------------
+
 
 def _extract_candidate_name(classified: list[tuple[Paragraph, str]]) -> str:
     """

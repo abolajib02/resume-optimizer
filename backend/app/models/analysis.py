@@ -7,10 +7,10 @@ from pydantic import BaseModel
 
 class BulletScore(BaseModel):
     bullet_id: str
-    relevance_score: float             # 0.0 – 1.0
+    relevance_score: float  # 0.0 – 1.0
     ats_keywords_matched: list[str]
     recommendation: Literal["keep", "remove", "deprioritize"]
-    reason: str                        # one sentence shown in UI tooltip
+    reason: str  # one sentence shown in UI tooltip
 
 
 class JobScore(BaseModel):
@@ -30,11 +30,11 @@ class SectionScore(BaseModel):
 class FormatRecommendation(BaseModel):
     recommended_format: Literal["chronological", "combination"]
     rationale: str
-    confidence: float                  # 0.0 – 1.0
+    confidence: float  # 0.0 – 1.0
 
 
 class SkillGroup(BaseModel):
-    heading: str                       # LLM-generated category label
+    heading: str  # LLM-generated category label
     bullet_ids: list[str]
 
 
