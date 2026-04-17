@@ -3,9 +3,11 @@ Tests for the DOCX parser.
 Run: cd backend && pytest tests/test_parser.py -v
 """
 import os
+
 import pytest
-from app.services.parser import parse_resume
+
 from app.models.resume import ParsedResume
+from app.services.parser import parse_resume
 
 # Paths to the provided resume templates (adjust if needed)
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")

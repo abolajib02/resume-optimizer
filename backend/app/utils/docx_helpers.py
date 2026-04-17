@@ -2,12 +2,9 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 from docx.oxml.ns import qn
-from docx.shared import Pt
 from docx.text.paragraph import Paragraph
-from docx.text.run import Run
 
 # Bullet characters commonly found in resumes
 BULLET_CHARS = {"•", "·", "◦", "▪", "▸", "►", "–", "—", "-", "*", "○", "●", "■", "□"}
@@ -57,14 +54,14 @@ SECTION_KEYWORDS: dict[str, list[str]] = {
 }
 
 
-def pt_from_emu(emu: Optional[int]) -> Optional[float]:
+def pt_from_emu(emu: int | None) -> float | None:
     """Convert EMU (English Metric Units) to points. 1pt = 12700 EMU."""
     if emu is None:
         return None
     return round(emu / 12700, 2)
 
 
-def paragraph_font_size_pt(para: Paragraph) -> Optional[float]:
+def paragraph_font_size_pt(para: Paragraph) -> float | None:
     """Return the most common font size (in pt) across runs, or None."""
     sizes = []
     for run in para.runs:
@@ -146,7 +143,7 @@ def contains_date_range(text: str) -> bool:
     return bool(DATE_RANGE_RE.search(text))
 
 
-def extract_date_range(text: str) -> Optional[str]:
+def extract_date_range(text: str) -> str | None:
     """Extract and return the first date range found in text, or None."""
     m = DATE_RANGE_RE.search(text)
     return m.group(0).strip() if m else None

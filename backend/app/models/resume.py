@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
-from pydantic import BaseModel, Field
 import uuid
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
 def _new_id() -> str:
@@ -12,12 +13,12 @@ def _new_id() -> str:
 class RunStyle(BaseModel):
     """Serialized style data for a single text run within a paragraph."""
     text: str
-    bold: Optional[bool] = None
-    italic: Optional[bool] = None
-    underline: Optional[bool] = None
-    font_name: Optional[str] = None
-    font_size_pt: Optional[float] = None
-    color_hex: Optional[str] = None
+    bold: bool | None = None
+    italic: bool | None = None
+    underline: bool | None = None
+    font_name: str | None = None
+    font_size_pt: float | None = None
+    color_hex: str | None = None
 
 
 class Bullet(BaseModel):
@@ -42,7 +43,7 @@ class Job(BaseModel):
     title: str
     company: str
     date_range: str
-    location: Optional[str] = None
+    location: str | None = None
     bullets: list[Bullet] = Field(default_factory=list)
     # Styling for the job header lines (title, company/date)
     title_run_styles: list[RunStyle] = Field(default_factory=list)
@@ -82,14 +83,14 @@ class Section(BaseModel):
 
 class DocumentStyles(BaseModel):
     """Document-level style defaults captured from the source DOCX."""
-    default_font_name: Optional[str] = None
-    default_font_size_pt: Optional[float] = None
-    page_width_inches: Optional[float] = None
-    page_height_inches: Optional[float] = None
-    margin_top_inches: Optional[float] = None
-    margin_bottom_inches: Optional[float] = None
-    margin_left_inches: Optional[float] = None
-    margin_right_inches: Optional[float] = None
+    default_font_name: str | None = None
+    default_font_size_pt: float | None = None
+    page_width_inches: float | None = None
+    page_height_inches: float | None = None
+    margin_top_inches: float | None = None
+    margin_bottom_inches: float | None = None
+    margin_left_inches: float | None = None
+    margin_right_inches: float | None = None
 
 
 ResumeFormat = Literal["chronological", "combination", "unknown"]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -43,4 +44,4 @@ class AnalysisResult(BaseModel):
     section_scores: list[SectionScore]
     ats_keyword_coverage: dict[str, bool]  # { keyword: matched }
     overall_match_score: float
-    skill_groups: Optional[list[SkillGroup]] = None  # populated for combination format
+    skill_groups: list[SkillGroup] | None = None  # populated for combination format

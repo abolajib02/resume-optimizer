@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from .analysis import SkillGroup
@@ -40,7 +41,7 @@ class DownloadRequest(BaseModel):
     # Inline edits: bullet/paragraph id → new text (user-made small edits)
     inline_edits: dict[str, str] = Field(default_factory=dict)
     # Skill groups for combination format (LLM-generated, user-approved)
-    skill_groups: Optional[list[SkillGroup]] = None
+    skill_groups: list[SkillGroup] | None = None
 
 
 class ParseResponse(BaseModel):
@@ -53,5 +54,5 @@ class AnalyzeTaskResponse(BaseModel):
 
 class AnalyzeStatusResponse(BaseModel):
     status: Literal["pending", "complete", "error"]
-    result: Optional[object] = None
-    error: Optional[str] = None
+    result: object | None = None
+    error: str | None = None

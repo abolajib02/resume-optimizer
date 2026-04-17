@@ -16,11 +16,8 @@ from __future__ import annotations
 
 import re
 from io import BytesIO
-from typing import Optional
 
 from docx import Document
-from docx.oxml.ns import qn
-from docx.shared import Inches
 from docx.text.paragraph import Paragraph
 
 from app.models.resume import (
@@ -44,7 +41,6 @@ from app.utils.docx_helpers import (
     serialize_runs,
     strip_bullet_char,
 )
-
 
 # ---------------------------------------------------------------------------
 # Internal classification labels used during the parse pass
@@ -276,7 +272,7 @@ def _build_sections(
     Within experience sections, further group paragraphs into Jobs.
     """
     sections: list[Section] = []
-    current_section: Optional[Section] = None
+    current_section: Section | None = None
     pending_free: list[tuple[Paragraph, int]] = []  # paragraphs before first heading
     section_order = 0
 
@@ -389,7 +385,7 @@ def _parse_experience_block(
     # Buffer for lines between the section heading and the first date line.
     # These form the job header (title, company, location).
     header_buffer: list[tuple[Paragraph, str]] = []
-    current_job: Optional[Job] = None
+    current_job: Job | None = None
     bullet_index = 0
 
     while i < len(classified):

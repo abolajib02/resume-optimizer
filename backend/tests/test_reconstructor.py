@@ -7,13 +7,14 @@ re-parse the output and verify structure. This is a round-trip integration test.
 Run: cd backend && pytest tests/test_reconstructor.py -v -s
 """
 import os
-import pytest
-from docx import Document
 from io import BytesIO
 
+import pytest
+from docx import Document
+
+from app.models.request import DownloadRequest, FormattingSettings
 from app.services.parser import parse_resume
 from app.services.reconstructor import reconstruct_resume
-from app.models.request import DownloadRequest, FormattingSettings
 
 CHRONOLOGICAL = os.path.join(
     os.path.expanduser("~"), "Downloads", "Chronological Resume Template.docx"

@@ -13,8 +13,8 @@ Returns deterministic, explainable results — no LLM involved here.
 from __future__ import annotations
 
 import re
-import string
 from functools import lru_cache
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # NLTK bootstrapping — download once, cache
@@ -127,7 +127,7 @@ def extract_jd_keywords(job_description: str, max_keywords: int = 40) -> list[st
     )
 
     # Deduplicate: skip if a longer phrase already covers this word
-    seen_stems = set()
+    seen_stems: set[str] = set()
     result: list[str] = []
     stemmer = _get_stemmer()
 
@@ -196,7 +196,7 @@ def resume_full_text(resume_dict: dict) -> str:
 
 
 @lru_cache(maxsize=1)
-def _get_stemmer():
+def _get_stemmer() -> Any:  # PorterStemmer — no stubs available
     _ensure_nltk()
     from nltk.stem import PorterStemmer
     return PorterStemmer()

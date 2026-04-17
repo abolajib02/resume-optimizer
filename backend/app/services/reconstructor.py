@@ -19,12 +19,8 @@ Key decisions:
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Optional
 
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 from docx.text.paragraph import Paragraph as DocxParagraph
 
@@ -33,9 +29,7 @@ from app.models.request import DownloadRequest, FormattingSettings
 from app.models.resume import (
     Bullet,
     DocumentStyles,
-    FreeParagraph,
     Job,
-    ParsedResume,
     RunStyle,
     Section,
 )
@@ -130,7 +124,7 @@ def _write_section(
     job_order: list[str],
     bullet_order_map: dict[str, list[str]],
     inline_edits: dict[str, str],
-    skill_groups: Optional[list[SkillGroup]],
+    skill_groups: list[SkillGroup] | None,
 ) -> None:
     # Write the section heading (skip for implicit contact blocks with no heading)
     if section.heading:
@@ -379,7 +373,7 @@ def _write_paragraph_from_runs(
     paragraph_style: str,
     settings: FormattingSettings,
     is_heading: bool,
-    inline_edit: Optional[str] = None,
+    inline_edit: str | None = None,
 ) -> DocxParagraph:
     """
     Add a paragraph to `doc`, replaying stored run styles.
@@ -442,7 +436,7 @@ def _write_paragraph_from_runs(
 def _write_plain_paragraph(
     doc: Document,
     text: str,
-    font_name: Optional[str],
+    font_name: str | None,
     font_size_pt: float,
     bold: bool = False,
     paragraph_style: str = "Normal",
@@ -488,7 +482,7 @@ def _apply_size(
     run,
     body_size: float,
     is_heading: bool,
-    stored_size: Optional[float],
+    stored_size: float | None,
 ) -> None:
     """
     Determine the effective font size for a run:
@@ -521,7 +515,7 @@ def _safe_style(doc: Document, style_name: str) -> str:
         return "Normal"
 
 
-def _fallback_font(section: Section) -> Optional[str]:
+def _fallback_font(section: Section) -> str | None:
     """Return the first non-None font name found in the section's free_paragraphs."""
     for fp in section.free_paragraphs:
         for rs in fp.run_styles:
