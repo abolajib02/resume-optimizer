@@ -45,9 +45,9 @@ export function useAnalysisPoller(): void {
           dispatch(setAnalysisError(data.error ?? 'Analysis failed.'));
         }
         // 'pending' → keep polling
-      } catch (err: any) {
+      } catch (err: unknown) {
         clearInterval(intervalRef.current!);
-        dispatch(setAnalysisError(err.message ?? 'Polling failed.'));
+        dispatch(setAnalysisError(err instanceof Error ? err.message : 'Polling failed.'));
       }
     }, POLL_INTERVAL_MS);
 

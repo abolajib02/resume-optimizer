@@ -36,7 +36,7 @@ const analysisSlice = createSlice({
       state.status = 'error';
     },
 
-    clearAnalysis(_state) {
+    clearAnalysis() {
       return initialState;
     },
   },

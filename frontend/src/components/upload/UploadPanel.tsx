@@ -69,8 +69,8 @@ export default function UploadPanel() {
       }
 
       dispatch(setStep('workspace'));
-    } catch (err: any) {
-      setError(err.message ?? 'Failed to parse resume.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to parse resume.');
     } finally {
       dispatch(setParseLoading(false));
     }

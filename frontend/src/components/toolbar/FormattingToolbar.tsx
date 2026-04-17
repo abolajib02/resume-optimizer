@@ -39,8 +39,8 @@ export default function FormattingToolbar() {
       };
       const blob = await downloadResume(payload);
       triggerBlobDownload(blob, 'optimized_resume.docx');
-    } catch (err: any) {
-      alert('Download failed: ' + (err.message ?? 'Unknown error'));
+    } catch (err: unknown) {
+      alert('Download failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       dispatch(setDownloadLoading(false));
     }

@@ -67,7 +67,7 @@ const resumeSlice = createSlice({
       }
     },
 
-    clearResume(_state) {
+    clearResume() {
       return initialState;
     },
 
