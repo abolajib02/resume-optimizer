@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file: .env          # reads ANTHROPIC_API_KEY, etc.
+    environment:
+      CORS_ORIGINS: '["http://localhost"]'
+    ports:
+      - "8000:8000"         # expose directly for local API testing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy   # wait for backend to pass its healthcheck
+    restart: unless-stopped
