@@ -25,9 +25,7 @@ export default function FormatModal() {
   }
 
   function override() {
-    // Keep the existing selectedFormat unchanged; just dismiss
-    const opposite = recommended_format === 'chronological' ? 'combination' : 'chronological';
-    dispatch(setSelectedFormat(opposite));
+    // User wants to keep their current format — just close the modal
     dispatch(dismissFormatModal());
   }
 

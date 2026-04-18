@@ -77,12 +77,9 @@ const uiSlice = createSlice({
       state.jobDescription = action.payload;
     },
 
-    // Apply format suggestion from LLM and show the confirmation modal
-    applyFormatRecommendation(
-      state,
-      action: PayloadAction<'chronological' | 'combination'>
-    ) {
-      state.selectedFormat = action.payload;
+    // Show the format confirmation modal — selectedFormat is NOT changed here.
+    // The user's click inside FormatModal applies the actual change.
+    applyFormatRecommendation(state) {
       state.showFormatModal = true;
     },
   },

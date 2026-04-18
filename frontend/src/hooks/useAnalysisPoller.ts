@@ -84,7 +84,7 @@ export function useAnalysisPoller(): void {
     // 3. Show format modal if recommended format differs from current
     const recommended = result.format_recommendation.recommended_format;
     if (recommended !== formatRef.current) {
-      dispatch(applyFormatRecommendation(recommended));
+      dispatch(applyFormatRecommendation());
     }
   }
 }
