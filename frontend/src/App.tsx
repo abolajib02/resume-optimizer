@@ -7,10 +7,11 @@ import ResumePreview from './components/preview/ResumePreview';
 import FormatModal from './components/analysis/FormatModal';
 import AnalysisBanner from './components/analysis/AnalysisBanner';
 import { useAnalysisPoller } from './hooks/useAnalysisPoller';
+import { useFormatReorder } from './hooks/useFormatReorder';
 
 function Workspace() {
-  // Start polling as soon as Workspace mounts (taskId lives in Redux)
-  useAnalysisPoller();
+  useAnalysisPoller();    // polls LLM analysis, auto-applies recommendations
+  useFormatReorder();     // reorders sections when format changes
 
   return (
     <div
