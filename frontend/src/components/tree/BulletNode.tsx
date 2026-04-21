@@ -1,5 +1,3 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
 import { toggleBullet } from '../../store/resumeSlice';
@@ -18,50 +16,18 @@ export default function BulletNode({ bullet, score }: Props) {
     (s: RootState) => s.resume.selection[bullet.id] ?? true
   );
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: bullet.id });
-
   return (
     <div
-      ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.4 : 1,
         display: 'flex',
         alignItems: 'flex-start',
         gap: '6px',
         padding: '4px 6px',
         borderRadius: '4px',
-        background: isDragging ? '#f0f9ff' : 'transparent',
         marginBottom: '2px',
       }}
     >
-      {/* Drag handle */}
-      <span
-        {...attributes}
-        {...listeners}
-        style={{
-          cursor: 'grab',
-          color: '#94a3b8',
-          fontSize: '14px',
-          paddingTop: '1px',
-          flexShrink: 0,
-          userSelect: 'none',
-          touchAction: 'none',
-        }}
-        title="Drag to reorder"
-      >
-        ⠿
-      </span>
-
-      {/* Checkbox */}
+      {/* Visibility checkbox */}
       <input
         type="checkbox"
         checked={visible}

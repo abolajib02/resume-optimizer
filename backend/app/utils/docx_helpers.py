@@ -42,6 +42,7 @@ SECTION_KEYWORDS: dict[str, list[str]] = {
         "key skills",
     ],
     "experience": [
+        "experience",
         "employment",
         "work history",
         "work experience",

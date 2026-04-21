@@ -1,22 +1,9 @@
 import { useState } from 'react';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  DndContext,
-  closestCenter,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
-import { toggleJob, reorderBullets } from '../../store/resumeSlice';
+import { toggleJob } from '../../store/resumeSlice';
 import type { Job, JobScore } from '../../types/resume';
 import BulletNode from './BulletNode';
 
@@ -36,27 +23,10 @@ export default function JobNode({ job, score }: Props) {
     (s: RootState) => s.resume.bulletOrder[job.id] ?? job.bullets.map(b => b.id)
   );
 
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-  );
-
   const bulletMap = Object.fromEntries(job.bullets.map(b => [b.id, b]));
   const bulletScoreMap = Object.fromEntries(
     (score?.bullet_scores ?? []).map(bs => [bs.bullet_id, bs])
   );
-
-  function handleBulletDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIdx = bulletOrder.indexOf(String(active.id));
-    const newIdx = bulletOrder.indexOf(String(over.id));
-    if (oldIdx === -1 || newIdx === -1) return;
-    const next = [...bulletOrder];
-    next.splice(oldIdx, 1);
-    next.splice(newIdx, 0, String(active.id));
-    dispatch(reorderBullets({ jobId: job.id, orderedIds: next }));
-  }
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: job.id });
@@ -90,12 +60,19 @@ export default function JobNode({ job, score }: Props) {
           cursor: 'default',
         }}
       >
-        {/* Drag handle */}
+        {/* Drag handle — reorders jobs within this section only */}
         <span
           {...attributes}
           {...listeners}
-          style={{ cursor: 'grab', color: '#94a3b8', fontSize: '14px', flexShrink: 0, userSelect: 'none', touchAction: 'none' }}
-          title="Drag to reorder"
+          style={{
+            cursor: 'grab',
+            color: '#94a3b8',
+            fontSize: '14px',
+            flexShrink: 0,
+            userSelect: 'none',
+            touchAction: 'none',
+          }}
+          title="Drag to reorder within section"
         >
           ⠿
         </span>
@@ -127,13 +104,7 @@ export default function JobNode({ job, score }: Props) {
 
         {/* Score badge */}
         {score && (
-          <span
-            style={{
-              fontSize: '10px',
-              color: '#64748b',
-              flexShrink: 0,
-            }}
-          >
+          <span style={{ fontSize: '10px', color: '#64748b', flexShrink: 0 }}>
             {Math.round(score.relevance_score * 100)}%
           </span>
         )}
@@ -158,32 +129,21 @@ export default function JobNode({ job, score }: Props) {
         )}
       </div>
 
-      {/* Bullets */}
+      {/* Bullets — displayed as a plain list, locked to this job */}
       {!collapsed && job.bullets.length > 0 && (
         <div style={{ padding: '4px 4px 4px 20px' }}>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleBulletDragEnd}
-          >
-            <SortableContext
-              items={bulletOrder}
-              strategy={verticalListSortingStrategy}
-            >
-              {bulletOrder.map(bid => {
-                const bullet = bulletMap[bid];
-                if (!bullet) return null;
-                return (
-                  <BulletNode
-                    key={bid}
-                    bullet={bullet}
-                    jobId={job.id}
-                    score={bulletScoreMap[bid]}
-                  />
-                );
-              })}
-            </SortableContext>
-          </DndContext>
+          {bulletOrder.map(bid => {
+            const bullet = bulletMap[bid];
+            if (!bullet) return null;
+            return (
+              <BulletNode
+                key={bid}
+                bullet={bullet}
+                jobId={job.id}
+                score={bulletScoreMap[bid]}
+              />
+            );
+          })}
         </div>
       )}
     </div>

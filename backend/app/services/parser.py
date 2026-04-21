@@ -235,9 +235,11 @@ def _classify_paragraph(para: Paragraph, body_font_size: float) -> str:
     if font_size and font_size >= body_font_size + 1.5:
         heading_signals += 2
 
-    # 4. Bold and short
+    # 4. Bold and short — worth 2 points so that title-case bold headings
+    #    (e.g. "Experience", "Education") are caught even without a Word
+    #    Heading style or all-caps formatting.
     if paragraph_is_bold(para) and len(text) < 40 and len(text.split()) <= 5:
-        heading_signals += 1
+        heading_signals += 2
 
     # 5. Has a bottom border (decorative section divider)
     if paragraph_has_bottom_border(para):

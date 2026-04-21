@@ -11,7 +11,7 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useDispatch, useSelector } from 'react-redux';
@@ -209,16 +209,13 @@ export default function SectionNode({ section, score }: Props) {
             </DndContext>
           )}
 
-          {/* Free paragraphs (skills, education, summary, etc.) */}
+          {/* Free paragraphs (skills, education, summary, etc.) — locked in place */}
           {section.free_paragraphs.length > 0 && (
-            <SortableContext
-              items={section.free_paragraphs.map(fp => fp.id)}
-              strategy={verticalListSortingStrategy}
-            >
+            <div>
               {section.free_paragraphs.map(fp => (
                 <FreeParagraphNode key={fp.id} fp={fp} />
               ))}
-            </SortableContext>
+            </div>
           )}
         </div>
       )}

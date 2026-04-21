@@ -1,5 +1,3 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
 import { toggleFreeParagraph } from '../../store/resumeSlice';
@@ -15,16 +13,9 @@ export default function FreeParagraphNode({ fp }: Props) {
     (s: RootState) => s.resume.selection[fp.id] ?? true
   );
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: fp.id });
-
   return (
     <div
-      ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.4 : 1,
         display: 'flex',
         alignItems: 'flex-start',
         gap: '6px',
@@ -33,14 +24,6 @@ export default function FreeParagraphNode({ fp }: Props) {
         marginBottom: '2px',
       }}
     >
-      <span
-        {...attributes}
-        {...listeners}
-        style={{ cursor: 'grab', color: '#94a3b8', fontSize: '14px', flexShrink: 0, userSelect: 'none' }}
-        title="Drag to reorder"
-      >
-        ⠿
-      </span>
       <input
         type="checkbox"
         checked={visible}
