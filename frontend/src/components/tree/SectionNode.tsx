@@ -7,7 +7,8 @@ import {
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -49,9 +50,10 @@ export default function SectionNode({ section, score }: Props) {
       s.resume.jobOrder[section.id] ?? section.jobs.map(j => j.id)
   );
 
-  const sensors = useSensors(useSensor(PointerSensor, {
-    activationConstraint: { distance: 5 },
-  }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
 
   const jobMap = Object.fromEntries(section.jobs.map(j => [j.id, j]));
   const jobScoreMap = Object.fromEntries(
@@ -104,7 +106,7 @@ export default function SectionNode({ section, score }: Props) {
         <span
           {...attributes}
           {...listeners}
-          style={{ cursor: 'grab', color: '#64748b', fontSize: '16px', flexShrink: 0, userSelect: 'none' }}
+          style={{ cursor: 'grab', color: '#64748b', fontSize: '16px', flexShrink: 0, userSelect: 'none', touchAction: 'none' }}
           title="Drag to reorder section"
         >
           ⠿

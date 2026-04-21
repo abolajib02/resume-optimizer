@@ -54,6 +54,7 @@ export default function BulletNode({ bullet, score }: Props) {
           paddingTop: '1px',
           flexShrink: 0,
           userSelect: 'none',
+          touchAction: 'none',
         }}
         title="Drag to reorder"
       >

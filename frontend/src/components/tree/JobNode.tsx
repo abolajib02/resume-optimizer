@@ -7,7 +7,8 @@ import {
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -35,9 +36,10 @@ export default function JobNode({ job, score }: Props) {
     (s: RootState) => s.resume.bulletOrder[job.id] ?? job.bullets.map(b => b.id)
   );
 
-  const sensors = useSensors(useSensor(PointerSensor, {
-    activationConstraint: { distance: 5 },
-  }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
 
   const bulletMap = Object.fromEntries(job.bullets.map(b => [b.id, b]));
   const bulletScoreMap = Object.fromEntries(
@@ -92,7 +94,7 @@ export default function JobNode({ job, score }: Props) {
         <span
           {...attributes}
           {...listeners}
-          style={{ cursor: 'grab', color: '#94a3b8', fontSize: '14px', flexShrink: 0, userSelect: 'none' }}
+          style={{ cursor: 'grab', color: '#94a3b8', fontSize: '14px', flexShrink: 0, userSelect: 'none', touchAction: 'none' }}
           title="Drag to reorder"
         >
           ⠿
