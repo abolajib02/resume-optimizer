@@ -2,13 +2,15 @@ import { useRef, useState, DragEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
 import { setResume, clearResume } from '../../store/resumeSlice';
-import { clearAnalysis, startAnalysis } from '../../store/analysisSlice';
+import { clearAnalysis } from '../../store/analysisSlice';
+// import { startAnalysis } from '../../store/analysisSlice';  // re-enable with analysis
 import {
   setParseLoading,
   setStep,
   setJobDescription,
 } from '../../store/uiSlice';
-import { parseResume, startAnalysis as apiStartAnalysis } from '../../api/client';
+import { parseResume } from '../../api/client';
+// import { startAnalysis as apiStartAnalysis } from '../../api/client';  // re-enable with analysis
 
 export default function UploadPanel() {
   const dispatch = useDispatch<AppDispatch>();
@@ -57,16 +59,16 @@ export default function UploadPanel() {
       const { resume } = await parseResume(pendingFile);
       dispatch(setResume(resume));
 
-      // Kick off analysis in the background before transitioning
-      try {
-        const { task_id } = await apiStartAnalysis({
-          resume,
-          job_description: jobDescription,
-        });
-        dispatch(startAnalysis(task_id));
-      } catch {
-        // Non-fatal: workspace is still usable without analysis results
-      }
+      // AI analysis temporarily disabled — re-enable when credits are available
+      // try {
+      //   const { task_id } = await apiStartAnalysis({
+      //     resume,
+      //     job_description: jobDescription,
+      //   });
+      //   dispatch(startAnalysis(task_id));
+      // } catch {
+      //   // Non-fatal: workspace is still usable without analysis results
+      // }
 
       dispatch(setStep('workspace'));
     } catch (err: unknown) {
