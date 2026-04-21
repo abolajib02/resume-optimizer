@@ -1,16 +1,16 @@
-import { useRef, useState, DragEvent } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../../store';
-import { setResume, clearResume } from '../../store/resumeSlice';
-import { clearAnalysis } from '../../store/analysisSlice';
-// import { startAnalysis } from '../../store/analysisSlice';  // re-enable with analysis
+import { useRef, useState, DragEvent } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store";
+import { setResume, clearResume } from "../../store/resumeSlice";
+import { clearAnalysis } from "../../store/analysisSlice";
+import { startAnalysis } from "../../store/analysisSlice"; // re-enable with analysis
 import {
   setParseLoading,
   setStep,
   setJobDescription,
-} from '../../store/uiSlice';
-import { parseResume } from '../../api/client';
-// import { startAnalysis as apiStartAnalysis } from '../../api/client';  // re-enable with analysis
+} from "../../store/uiSlice";
+import { parseResume } from "../../api/client";
+import { startAnalysis as apiStartAnalysis } from "../../api/client"; // re-enable with analysis
 
 export default function UploadPanel() {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,8 +24,8 @@ export default function UploadPanel() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   function handleFile(file: File) {
-    if (!file.name.endsWith('.docx')) {
-      setError('Please upload a .docx file.');
+    if (!file.name.endsWith(".docx")) {
+      setError("Please upload a .docx file.");
       return;
     }
     setError(null);
@@ -42,11 +42,11 @@ export default function UploadPanel() {
 
   async function onSubmit() {
     if (!pendingFile) {
-      setError('Please select a resume file.');
+      setError("Please select a resume file.");
       return;
     }
     if (!jobDescription.trim()) {
-      setError('Please paste a job description.');
+      setError("Please paste a job description.");
       return;
     }
 
@@ -59,20 +59,20 @@ export default function UploadPanel() {
       const { resume } = await parseResume(pendingFile);
       dispatch(setResume(resume));
 
-      // AI analysis temporarily disabled — re-enable when credits are available
-      // try {
-      //   const { task_id } = await apiStartAnalysis({
-      //     resume,
-      //     job_description: jobDescription,
-      //   });
-      //   dispatch(startAnalysis(task_id));
-      // } catch {
-      //   // Non-fatal: workspace is still usable without analysis results
-      // }
+      //AI analysis temporarily disabled — re-enable when credits are available
+      try {
+        const { task_id } = await apiStartAnalysis({
+          resume,
+          job_description: jobDescription,
+        });
+        dispatch(startAnalysis(task_id));
+      } catch {
+        // Non-fatal: workspace is still usable without analysis results
+      }
 
-      dispatch(setStep('workspace'));
+      dispatch(setStep("workspace"));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to parse resume.');
+      setError(err instanceof Error ? err.message : "Failed to parse resume.");
     } finally {
       dispatch(setParseLoading(false));
     }
@@ -83,8 +83,8 @@ export default function UploadPanel() {
       <div style={styles.card}>
         <h1 style={styles.title}>Resume Optimizer</h1>
         <p style={styles.subtitle}>
-          Upload your master resume and paste a job description. We'll tailor
-          it to fit one page.
+          Upload your master resume and paste a job description. We'll tailor it
+          to fit one page.
         </p>
 
         {/* Drop zone */}
@@ -94,7 +94,10 @@ export default function UploadPanel() {
             ...(dragOver ? styles.dropZoneActive : {}),
           }}
           onClick={() => fileRef.current?.click()}
-          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
           onDragLeave={() => setDragOver(false)}
           onDrop={onDrop}
         >
@@ -102,8 +105,8 @@ export default function UploadPanel() {
             ref={fileRef}
             type="file"
             accept=".docx"
-            style={{ display: 'none' }}
-            onChange={e => {
+            style={{ display: "none" }}
+            onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleFile(f);
             }}
@@ -123,7 +126,7 @@ export default function UploadPanel() {
           style={styles.textarea}
           placeholder="Paste the full job description here…"
           value={jobDescription}
-          onChange={e => dispatch(setJobDescription(e.target.value))}
+          onChange={(e) => dispatch(setJobDescription(e.target.value))}
           rows={10}
         />
 
@@ -137,7 +140,7 @@ export default function UploadPanel() {
           onClick={onSubmit}
           disabled={parseLoading}
         >
-          {parseLoading ? 'Uploading…' : 'Optimize Resume →'}
+          {parseLoading ? "Uploading…" : "Optimize Resume →"}
         </button>
       </div>
     </div>
@@ -146,93 +149,93 @@ export default function UploadPanel() {
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
-    minHeight: '100vh',
-    background: '#f8fafc',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px',
+    minHeight: "100vh",
+    background: "#f8fafc",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px",
   },
   card: {
-    background: '#fff',
-    borderRadius: '12px',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-    padding: '40px',
-    width: '100%',
-    maxWidth: '600px',
+    background: "#fff",
+    borderRadius: "12px",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+    padding: "40px",
+    width: "100%",
+    maxWidth: "600px",
   },
   title: {
-    margin: '0 0 8px',
-    fontSize: '28px',
+    margin: "0 0 8px",
+    fontSize: "28px",
     fontWeight: 700,
-    color: '#0f172a',
+    color: "#0f172a",
   },
   subtitle: {
-    margin: '0 0 28px',
-    color: '#64748b',
+    margin: "0 0 28px",
+    color: "#64748b",
     lineHeight: 1.5,
   },
   dropZone: {
-    border: '2px dashed #cbd5e1',
-    borderRadius: '8px',
-    padding: '32px',
-    textAlign: 'center',
-    cursor: 'pointer',
-    marginBottom: '20px',
-    transition: 'border-color 0.15s, background 0.15s',
-    background: '#f8fafc',
+    border: "2px dashed #cbd5e1",
+    borderRadius: "8px",
+    padding: "32px",
+    textAlign: "center",
+    cursor: "pointer",
+    marginBottom: "20px",
+    transition: "border-color 0.15s, background 0.15s",
+    background: "#f8fafc",
   },
   dropZoneActive: {
-    borderColor: '#3b82f6',
-    background: '#eff6ff',
+    borderColor: "#3b82f6",
+    background: "#eff6ff",
   },
   dropText: {
-    color: '#64748b',
-    fontSize: '15px',
+    color: "#64748b",
+    fontSize: "15px",
   },
   fileName: {
-    color: '#1d4ed8',
+    color: "#1d4ed8",
     fontWeight: 500,
-    fontSize: '15px',
+    fontSize: "15px",
   },
   label: {
-    display: 'block',
+    display: "block",
     fontWeight: 600,
-    color: '#374151',
-    marginBottom: '6px',
-    fontSize: '14px',
+    color: "#374151",
+    marginBottom: "6px",
+    fontSize: "14px",
   },
   textarea: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontFamily: 'inherit',
-    resize: 'vertical',
-    color: '#0f172a',
-    boxSizing: 'border-box',
+    width: "100%",
+    padding: "10px 12px",
+    border: "1px solid #cbd5e1",
+    borderRadius: "6px",
+    fontSize: "13px",
+    fontFamily: "inherit",
+    resize: "vertical",
+    color: "#0f172a",
+    boxSizing: "border-box",
     lineHeight: 1.5,
   },
   error: {
-    color: '#dc2626',
-    fontSize: '13px',
-    marginTop: '8px',
+    color: "#dc2626",
+    fontSize: "13px",
+    marginTop: "8px",
   },
   button: {
-    marginTop: '20px',
-    width: '100%',
-    padding: '13px',
-    background: '#2563eb',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '15px',
+    marginTop: "20px",
+    width: "100%",
+    padding: "13px",
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "15px",
     fontWeight: 600,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
   buttonDisabled: {
-    background: '#93c5fd',
-    cursor: 'not-allowed',
+    background: "#93c5fd",
+    cursor: "not-allowed",
   },
 };
