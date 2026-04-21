@@ -38,6 +38,7 @@ from app.utils.docx_helpers import (
     paragraph_font_size_pt,
     paragraph_has_bottom_border,
     paragraph_is_bold,
+    paragraph_is_underlined,
     paragraph_left_indent_emu,
     serialize_runs,
     strip_bullet_char,
@@ -235,14 +236,21 @@ def _classify_paragraph(para: Paragraph, body_font_size: float) -> str:
     if font_size and font_size >= body_font_size + 1.5:
         heading_signals += 2
 
-    # 4. Bold and short — worth 2 points so that title-case bold headings
-    #    (e.g. "Experience", "Education") are caught even without a Word
-    #    Heading style or all-caps formatting.
+    # 4. Bold and short — +1 only; not sufficient alone so that bold-only
+    #    content lines (project titles, job sub-headings like "Technical Skills:")
+    #    don't get mis-classified as section headings.
     if paragraph_is_bold(para) and len(text) < 40 and len(text.split()) <= 5:
-        heading_signals += 2
+        heading_signals += 1
 
     # 5. Has a bottom border (decorative section divider)
     if paragraph_has_bottom_border(para):
+        heading_signals += 2
+
+    # 6. Underlined text — resumes commonly underline true section headings
+    #    (e.g. "Projects", "Professional Experience") but not inline sub-headings
+    #    or content bold lines. Combined with signal 4 this gives bold+underlined
+    #    paragraphs a total of 3, crossing the threshold cleanly.
+    if paragraph_is_underlined(para):
         heading_signals += 2
 
     if heading_signals >= 2:

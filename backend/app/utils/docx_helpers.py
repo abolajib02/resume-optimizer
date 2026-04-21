@@ -97,6 +97,11 @@ def paragraph_is_bold(para: Paragraph) -> bool:
     return any(run.bold for run in para.runs)
 
 
+def paragraph_is_underlined(para: Paragraph) -> bool:
+    """True if any run in the paragraph is underlined."""
+    return any(run.underline for run in para.runs)
+
+
 def paragraph_has_bottom_border(para: Paragraph) -> bool:
     """True if the paragraph XML contains a bottom border (common in resume headers)."""
     pPr = para._p.find(qn("w:pPr"))
