@@ -338,35 +338,181 @@ def _build_sections(
             # Delegate experience parsing to a sub-routine
             consumed = _parse_experience_block(classified, i, current_section, warnings)
             i += consumed
+        elif current_section.section_type in _GROUPED_SECTION_TYPES:
+            # Projects / skills / certifications: group by bold title lines into Job objects
+            consumed = _parse_grouped_block(classified, i, current_section, warnings)
+            i += consumed
         else:
-            # Non-experience section: accumulate bullets and free paragraphs
+            # All other sections: accumulate bullets and free paragraphs
             fp_index = len(current_section.free_paragraphs)
             if cls == _CLS_BULLET:
-                bullet = Bullet(
-                    text=strip_bullet_char(text),
-                    run_styles=[RunStyle(**r) for r in serialize_runs(para)],
-                    paragraph_style=para.style.name if para.style else "Normal",
-                    original_index=fp_index,
-                )
                 current_section.free_paragraphs.append(
                     FreeParagraph(
-                        text=bullet.text,
-                        run_styles=bullet.run_styles,
-                        paragraph_style=bullet.paragraph_style,
+                        text=strip_bullet_char(text),
+                        run_styles=[RunStyle(**r) for r in serialize_runs(para)],
+                        paragraph_style=para.style.name if para.style else "Normal",
                         original_index=fp_index,
                     )
                 )
             else:
-                fp = FreeParagraph(
-                    text=text,
-                    run_styles=[RunStyle(**r) for r in serialize_runs(para)],
-                    paragraph_style=para.style.name if para.style else "Normal",
-                    original_index=fp_index,
+                current_section.free_paragraphs.append(
+                    FreeParagraph(
+                        text=text,
+                        run_styles=[RunStyle(**r) for r in serialize_runs(para)],
+                        paragraph_style=para.style.name if para.style else "Normal",
+                        original_index=fp_index,
+                    )
                 )
-                current_section.free_paragraphs.append(fp)
             i += 1
 
     return sections
+
+
+# Section types that get grouped into Job objects by bold-title detection
+# rather than experience-style date-line detection.
+_GROUPED_SECTION_TYPES = {"projects", "skills", "certifications", "military"}
+
+
+def _find_group_header(
+    para: Paragraph, cls: str, section_type: str, text: str
+) -> tuple[str, str | None] | None:
+    """
+    Decide whether a paragraph is the start of a new group entry within a
+    grouped section (projects, skills, certifications).
+
+    Returns (title, remaining_content | None) when the paragraph is a header,
+    or None if it is ordinary content.
+
+    Projects  – any bold line of ≤ 6 words / ≤ 50 chars that does not start
+                with a bullet character.
+
+    Skills /  – bold line that either:
+    Certs       • ends with ':' (standalone sub-heading like "Technical Skills:")
+                • starts with a short label (≤ 3 words) containing the word
+                  "skill" or "competenc" followed by ': content'
+                  (e.g. "Leadership Skills: Professional Communication, …")
+    """
+    if cls == _CLS_HEADING:
+        return None  # real section heading — handled by the caller
+    if not paragraph_is_bold(para):
+        return None
+    if not text or text[0] in BULLET_CHARS:
+        return None
+
+    if section_type == "projects":
+        words = text.split()
+        if len(words) <= 6 and len(text) <= 50:
+            return (text, None)
+
+    elif section_type in ("skills", "certifications"):
+        # Standalone sub-heading: "Technical Skills:"
+        if text.endswith(":") and len(text.split()) <= 5:
+            return (text, None)
+        # Inline mixed: "Leadership Skills: content…" or "Language Skills: …"
+        colon_idx = text.find(":")
+        if colon_idx > 0:
+            label = text[:colon_idx].strip()
+            after = text[colon_idx + 1 :].strip()
+            label_lower = label.lower()
+            if (
+                len(label.split()) <= 3
+                and after
+                and ("skill" in label_lower or "competenc" in label_lower)
+            ):
+                return (label + ":", after)
+
+    return None
+
+
+def _parse_grouped_block(
+    classified: list[tuple[Paragraph, str]],
+    start: int,
+    section: Section,
+    warnings: list[str],
+) -> int:
+    """
+    Parse a grouped section (projects, skills, certifications) starting at
+    `start`.  Bold title lines become Job objects; all subsequent content
+    is stored as Bullet entries under that job so they appear in the tree
+    with visibility checkboxes.
+
+    Returns the number of classified entries consumed.
+    """
+    i = start
+    current_job: Job | None = None
+    job_order = len(section.jobs)
+
+    def _flush_job() -> None:
+        nonlocal current_job
+        if current_job is not None:
+            section.jobs.append(current_job)
+            current_job = None
+
+    while i < len(classified):
+        para, cls = classified[i]
+        text = para.text.strip()
+
+        if cls == _CLS_HEADING:
+            break  # next top-level section starts here
+
+        if cls == _CLS_EMPTY:
+            i += 1
+            continue
+
+        header = _find_group_header(para, cls, section.section_type, text)
+
+        if header is not None:
+            _flush_job()
+            title, remaining = header
+            current_job = Job(
+                title=title,
+                title_run_styles=[RunStyle(**r) for r in serialize_runs(para)],
+                title_paragraph_style=para.style.name if para.style else "Normal",
+                company="",
+                date_range="",
+                original_order=job_order,
+            )
+            job_order += 1
+            # If the header line contained inline content (e.g. "Leadership Skills: …"),
+            # store that remainder as the first bullet under this group.
+            if remaining:
+                current_job.bullets.append(
+                    Bullet(
+                        text=remaining,
+                        run_styles=[RunStyle(**r) for r in serialize_runs(para)],
+                        paragraph_style=para.style.name if para.style else "Normal",
+                        original_index=0,
+                    )
+                )
+            i += 1
+            continue
+
+        # Regular content — attach to current job as a bullet (makes it
+        # visible + toggleable in the tree).  If no job has started yet,
+        # fall back to the section's free_paragraphs.
+        clean = strip_bullet_char(text) if cls == _CLS_BULLET else text
+        if current_job is not None:
+            current_job.bullets.append(
+                Bullet(
+                    text=clean,
+                    run_styles=[RunStyle(**r) for r in serialize_runs(para)],
+                    paragraph_style=para.style.name if para.style else "Normal",
+                    original_index=len(current_job.bullets),
+                )
+            )
+        else:
+            section.free_paragraphs.append(
+                FreeParagraph(
+                    text=clean,
+                    run_styles=[RunStyle(**r) for r in serialize_runs(para)],
+                    paragraph_style=para.style.name if para.style else "Normal",
+                    original_index=len(section.free_paragraphs),
+                )
+            )
+        i += 1
+
+    _flush_job()
+    return i - start
 
 
 def _flush_free_paragraphs(section: Section, pending: list[tuple[Paragraph, int]]) -> None:
