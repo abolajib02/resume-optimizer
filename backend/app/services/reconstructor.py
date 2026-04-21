@@ -19,6 +19,7 @@ Key decisions:
 
 from __future__ import annotations
 
+import re
 from io import BytesIO
 
 from docx import Document
@@ -155,7 +156,11 @@ def _write_section(
             inline_edits=inline_edits,
             collapsed=is_combination,
         )
-    elif section.section_type == "skills" and is_combination and skill_groups:
+    elif section.section_type == "skills" and is_combination and skill_groups and not section.jobs:
+        # Combination format with flat, unstructured skill bullets → group under
+        # AI-generated category headings.  When section.jobs is non-empty the
+        # skills are already structured (Technical Skills:, Leadership Skills: …)
+        # and _write_grouped_section preserves that structure instead.
         _write_combination_skills_section(
             doc=doc,
             section=section,
@@ -252,8 +257,20 @@ def _write_job_header(
 
     if title_from_date_line:
         # Write as a single paragraph: "Title  date_range"
-        # Build a merged run list: title text + spacer + date text
-        combined_text = f"{title_text}  {date_text}"
+        # Guard against spurious inline edits: the frontend's contentEditable
+        # blur can fire when the user merely views the preview, storing the
+        # original tab-formatted line ("Title\t\t\tDate") as an inline edit.
+        # Stripping the date range from title_text before constructing the
+        # combined paragraph prevents "Title\t\t\tDate  Date" duplication.
+        if date_text:
+            clean_title = re.sub(
+                r"[\s,|–—\-]*" + re.escape(date_text) + r"[\s,|–—\-]*$",
+                "",
+                title_text,
+            ).strip()
+        else:
+            clean_title = title_text.strip()
+        combined_text = f"{clean_title}  {date_text}" if date_text else clean_title
         _write_paragraph_from_runs(
             doc=doc,
             text=combined_text,

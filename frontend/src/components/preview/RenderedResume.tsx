@@ -179,11 +179,18 @@ function JobHeader({ job, bodySize, inlineEdits }: JobHeaderProps) {
   if (titleFromDateLine) {
     // Single line: "Title  date_range"
     const combinedText = `${titleText}  ${dateText}`;
+    // Use the actual rendered text (joined runs) as originalText so that a
+    // mere focus+blur on the contentEditable element doesn't fire a spurious
+    // applyInlineEdit.  The runs may contain tab characters that differ from
+    // combinedText's double-space, causing the browser's textContent to
+    // differ from combinedText and triggering an unwanted inline edit that
+    // later causes the date to appear twice in the DOCX output.
+    const storedRunText = job.title_run_styles.map(r => r.text).join('');
     return (
       <div style={{ marginBottom: '1px', marginTop: '6px' }}>
         <EditableParagraph
           nodeId={job.id + '_title'}
-          originalText={combinedText}
+          originalText={storedRunText || combinedText}
           style={{ margin: 0 }}
         >
           <Runs
