@@ -24,11 +24,14 @@ export function useAnalysisPoller(): void {
   const taskId = useSelector((s: RootState) => s.analysis.taskId);
   const status = useSelector((s: RootState) => s.analysis.status);
   const currentFormat = useSelector((s: RootState) => s.ui.selectedFormat);
+  const resume = useSelector((s: RootState) => s.resume.resume);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Capture currentFormat in a ref so the interval closure stays fresh
+  // Capture currentFormat and resume in refs so the interval closure stays fresh
   const formatRef = useRef(currentFormat);
   formatRef.current = currentFormat;
+  const resumeRef = useRef(resume);
+  resumeRef.current = resume;
 
   useEffect(() => {
     if (!taskId || status !== 'pending') return;
@@ -60,18 +63,31 @@ export function useAnalysisPoller(): void {
     // 1. Store result
     dispatch(setAnalysisResult(result));
 
-    // 2. Auto-apply "remove" / "collapse" recommendations to visibility map
+    // 2. Auto-apply "remove" recommendations to visibility map.
+    //    IMPORTANT: only auto-remove jobs and bullets from the "experience"
+    //    section.  Skills, projects, certifications etc. are never silently
+    //    wiped — the user must opt out of those entries manually.
+    //    Section-level removal applies to all section types.
+    const sectionTypeMap: Record<string, string> = {};
+    if (resumeRef.current) {
+      for (const section of resumeRef.current.sections) {
+        sectionTypeMap[section.id] = section.section_type;
+      }
+    }
+
     const selectionPatch: Record<string, boolean> = {};
     for (const ss of result.section_scores) {
       if (ss.recommendation === 'remove') {
         selectionPatch[ss.section_id] = false;
       }
+      // Only auto-remove jobs and bullets inside experience sections
+      const isExperience = (sectionTypeMap[ss.section_id] ?? '') === 'experience';
       for (const js of ss.job_scores) {
-        if (js.recommendation === 'remove') {
+        if (isExperience && js.recommendation === 'remove') {
           selectionPatch[js.job_id] = false;
         }
         for (const bs of js.bullet_scores) {
-          if (bs.recommendation === 'remove') {
+          if (isExperience && bs.recommendation === 'remove') {
             selectionPatch[bs.bullet_id] = false;
           }
         }

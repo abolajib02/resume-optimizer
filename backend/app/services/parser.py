@@ -401,7 +401,7 @@ def _find_group_header(
 
     if section_type == "projects":
         words = text.split()
-        if len(words) <= 6 and len(text) <= 50:
+        if len(words) <= 10 and len(text) <= 80:
             return (text, None)
 
     elif section_type in ("skills", "certifications"):
@@ -409,6 +409,9 @@ def _find_group_header(
         if text.endswith(":") and len(text.split()) <= 5:
             return (text, None)
         # Inline mixed: "Leadership Skills: content…" or "Language Skills: …"
+        # Return the FULL paragraph text as the title (remaining=None) so the
+        # entire entry is stored as a single atomic job — no separate bullet
+        # that the AI analysis could independently auto-uncheck.
         colon_idx = text.find(":")
         if colon_idx > 0:
             label = text[:colon_idx].strip()
@@ -419,7 +422,7 @@ def _find_group_header(
                 and after
                 and ("skill" in label_lower or "competenc" in label_lower)
             ):
-                return (label + ":", after)
+                return (text, None)
 
     return None
 
