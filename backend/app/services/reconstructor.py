@@ -164,6 +164,18 @@ def _write_section(
             skill_groups=skill_groups,
             inline_edits=inline_edits,
         )
+    elif section.section_type in ("projects", "skills", "certifications", "military"):
+        # These sections store entries as Job objects (from _parse_grouped_block).
+        # _write_free_section would ignore section.jobs entirely → blank output.
+        _write_grouped_section(
+            doc=doc,
+            section=section,
+            settings=settings,
+            selection=selection,
+            job_order=job_order,
+            bullet_order_map=bullet_order_map,
+            inline_edits=inline_edits,
+        )
     else:
         _write_free_section(
             doc=doc,
@@ -339,6 +351,75 @@ def _write_combination_skills_section(
                 settings=settings,
                 is_heading=False,
             )
+
+
+# ---------------------------------------------------------------------------
+# Grouped sections (projects, skills, certifications, military)
+# ---------------------------------------------------------------------------
+
+
+def _write_grouped_section(
+    doc: Document,
+    section: Section,
+    settings: FormattingSettings,
+    selection: dict[str, bool],
+    job_order: list[str],
+    bullet_order_map: dict[str, list[str]],
+    inline_edits: dict[str, str],
+) -> None:
+    """
+    Write a section whose entries are stored as Job objects by _parse_grouped_block
+    (projects, skills, certifications).
+
+    Each Job's title is written as a styled paragraph, followed by its bullets.
+    Any free_paragraphs on the section (content before the first group header)
+    are written first.
+    """
+    # Content that sits before the first group entry (rare but possible)
+    for fp in section.free_paragraphs:
+        if not _is_visible(fp.id, selection):
+            continue
+        text = inline_edits.get(fp.id, fp.text)
+        _write_paragraph_from_runs(
+            doc=doc,
+            text=text,
+            run_styles=fp.run_styles,
+            paragraph_style=fp.paragraph_style,
+            settings=settings,
+            is_heading=False,
+        )
+
+    job_map = {j.id: j for j in section.jobs}
+
+    for job_id in job_order:
+        job = job_map.get(job_id)
+        if job is None:
+            continue
+        if not _is_visible(job_id, selection):
+            continue
+
+        # Write the group title (e.g. "Loafr: Software Engineering" or "Technical Skills:")
+        title_text = inline_edits.get(job.id + "_title", job.title)
+        if title_text:
+            _write_paragraph_from_runs(
+                doc=doc,
+                text=title_text,
+                run_styles=job.title_run_styles,
+                paragraph_style=job.title_paragraph_style,
+                settings=settings,
+                is_heading=False,
+            )
+
+        # Write all visible content bullets under this group
+        bullet_order = bullet_order_map.get(job_id, [b.id for b in job.bullets])
+        bullet_map = {b.id: b for b in job.bullets}
+        for bullet_id in bullet_order:
+            bullet = bullet_map.get(bullet_id)
+            if bullet is None:
+                continue
+            if not _is_visible(bullet_id, selection):
+                continue
+            _write_bullet(doc, bullet, settings, inline_edits)
 
 
 # ---------------------------------------------------------------------------
