@@ -87,6 +87,10 @@ def parse_resume(file_bytes: bytes) -> ParsedResume:
     # Stage 4 – build section/job/bullet tree
     sections = _build_sections(classified, warnings)
 
+    # Stage 4b – merge consecutive same-type sections (e.g. "SKILLS" followed
+    #             by "Technical Skills" / "Leadership Skills" sub-headings)
+    sections = _merge_same_type_sections(sections)
+
     # Stage 5 – detect format
     detected_format = _detect_format(sections)
 
@@ -235,14 +239,20 @@ def _classify_paragraph(para: Paragraph, body_font_size: float) -> str:
     if font_size and font_size >= body_font_size + 1.5:
         heading_signals += 2
 
-    # 4. Bold and short — worth 2 points so that title-case bold headings
-    #    (e.g. "Experience", "Education") are caught even without a Word
-    #    Heading style or all-caps formatting.
+    # 4. Bold and short — +1 by itself (not enough alone to be a heading,
+    #    prevents bold job/project titles from being mis-classified).
     if paragraph_is_bold(para) and len(text) < 40 and len(text.split()) <= 5:
-        heading_signals += 2
+        heading_signals += 1
 
     # 5. Has a bottom border (decorative section divider)
     if paragraph_has_bottom_border(para):
+        heading_signals += 2
+
+    # 6. Text matches a known section keyword (e.g. "Experience", "Technical Skills").
+    #    Worth +2 so that title-case bold section headings cross the threshold
+    #    even without a Word Heading style or all-caps formatting, while bold
+    #    content lines (project titles, job titles) without keywords stay below it.
+    if classify_section(text) != "other":
         heading_signals += 2
 
     if heading_signals >= 2:
@@ -588,6 +598,64 @@ def _build_job(
         raw_header_paragraphs=raw_extras,
         original_order=job_order,
     )
+
+
+# ---------------------------------------------------------------------------
+# Stage 4b – Merge consecutive same-type sections
+# ---------------------------------------------------------------------------
+
+# Section types that are allowed to be merged when consecutive.
+# "other" and "contact" are intentionally excluded — we don't want to
+# collapse unrelated catch-all sections or multiple contact blocks.
+_MERGEABLE_TYPES = {"skills", "certifications", "projects", "education", "summary", "military"}
+
+
+def _merge_same_type_sections(sections: list[Section]) -> list[Section]:
+    """
+    Collapse consecutive sections that share the same section_type into one.
+
+    Use case: a resume with a top-level "SKILLS" heading followed by
+    "Technical Skills", "Leadership Skills", and "Language Skills" sub-headings
+    should produce one Skills section rather than four separate ones.
+
+    The first section's heading is kept.  Subsequent same-type sections have
+    their heading demoted to a FreeParagraph (preserving the sub-heading text)
+    and their jobs / free_paragraphs appended to the first section.
+    """
+    if not sections:
+        return sections
+
+    merged: list[Section] = [sections[0]]
+
+    for section in sections[1:]:
+        prev = merged[-1]
+
+        if section.section_type == prev.section_type and section.section_type in _MERGEABLE_TYPES:
+            # Demote the sub-section heading to a FreeParagraph so it still
+            # renders in the preview (e.g. "Technical Skills" as bold text).
+            if section.heading:
+                sub_heading = FreeParagraph(
+                    text=section.heading,
+                    run_styles=section.heading_run_styles,
+                    paragraph_style=section.heading_paragraph_style,
+                    original_index=len(prev.free_paragraphs),
+                )
+                prev.free_paragraphs.append(sub_heading)
+
+            # Append child content, renumbering indices to avoid conflicts.
+            base = len(prev.free_paragraphs)
+            for i, fp in enumerate(section.free_paragraphs):
+                fp.original_index = base + i
+            prev.free_paragraphs.extend(section.free_paragraphs)
+
+            job_base = len(prev.jobs)
+            for i, job in enumerate(section.jobs):
+                job.original_order = job_base + i
+            prev.jobs.extend(section.jobs)
+        else:
+            merged.append(section)
+
+    return merged
 
 
 # ---------------------------------------------------------------------------
